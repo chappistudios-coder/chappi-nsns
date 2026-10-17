@@ -1,0 +1,6 @@
+// PUBLIC settings only. This file is downloaded by every visitor's browser.
+// The publishable key is made to be public. NEVER put a secret key or service_role key here.
+window.HIGHWAY_ENV = {
+  SUPABASE_URL: '',   // <- you must fill this: Supabase > Project Settings > API > Project URL, like https://abcdxyz.supabase.co
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_UWlpGunbF1OO58BpLRZsig_driStkKi'
+};

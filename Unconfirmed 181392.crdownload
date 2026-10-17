@@ -1,0 +1,26 @@
+// Extracted copy for reference. Live code is inside index.html (search "Firebase phone OTP").
+// Firebase JS SDK 10.12.5 (compat) is loaded at runtime from www.gstatic.com. Config: CONFIG.firebase in index.html.
+/* ---------- Firebase phone OTP ---------- */
+const FB={ready:null,verifier:null,conf:null};
+function fbLoad(){
+  if(FB.ready)return FB.ready;
+  const c=CONFIG.firebase;
+  if(!c.apiKey||!c.projectId)return Promise.reject(new Error('Phone login is not set up yet.'));
+  const ld=u=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error('Could not load login. Check your internet.'));document.head.appendChild(e);});
+  const b='https://www.gstatic.com/firebasejs/10.12.5/';
+  FB.ready=ld(b+'firebase-app-compat.js').then(()=>ld(b+'firebase-auth-compat.js')).then(()=>{firebase.initializeApp(c);const a=firebase.auth();a.languageCode='en';return a;});
+  FB.ready.catch(()=>{FB.ready=null;});
+  return FB.ready;
+}
+function fbMsg(e){const m={'auth/invalid-phone-number':'Enter a valid mobile number.','auth/too-many-requests':'Too many tries. Please wait a while and try again.','auth/invalid-verification-code':'That code is not correct.','auth/code-expired':'That code has expired. Please send a new one.','auth/captcha-check-failed':'Could not verify you are human. Try again.','auth/network-request-failed':'No internet. Try again.','auth/quota-exceeded':'SMS limit reached. Try again later.','auth/operation-not-allowed':'Phone login is not turned on in Firebase.','auth/unauthorized-domain':'This website is not allowed in Firebase yet.'};return m[e&&e.code]||(e&&e.message)||'Something went wrong. Try again.';}
+async function fbSend(phone){
+  const auth=await fbLoad();
+  if(!FB.verifier)FB.verifier=new firebase.auth.RecaptchaVerifier('recaptcha-box',{size:'invisible'});
+  try{FB.conf=await auth.signInWithPhoneNumber('+91'+normPhone(phone),FB.verifier);}
+  catch(e){try{FB.verifier.clear();}catch(_){}FB.verifier=null;throw new Error(fbMsg(e));}
+}
+async function fbVerify(code){
+  if(!FB.conf)throw new Error('Send the code first.');
+  if(!/^\d{6}$/.test(String(code).trim()))throw new Error('Enter the 6-digit code.');
+  try{await FB.conf.confirm(String(code).trim());}catch(e){throw new Error(fbMsg(e));}
+}
